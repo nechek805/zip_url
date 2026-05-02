@@ -1,0 +1,69 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    name: Lint, tests, alembic check
+    runs-on: [self-hosted, linux, x64, zip_url]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create temp env file if missing
+        run: |
+          if [ ! -f .env ]; then
+            cp .env.example .env || true
+          fi
+
+      - name: Build test image
+        run: docker compose build
+      
+      - name: Start postgres for checks/tests
+        run: docker compose up -d postgres rabbitmq redis
+
+      - name: Run Ruff
+        run: docker compose run --rm api uv run ruff check .
+        
+      - name: Apply migrations
+        run: docker compose run --rm api uv run alembic upgrade head
+
+      - name: Run Alembic check
+        run: docker compose run --rm api uv run alembic check
+
+      - name: Run Pytest
+        run: docker compose run --rm api uv run pytest -p no:cacheprovider
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v 
+
+
+  cd:
+    name: Deploy
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, x64, zip_url]
+
+    steps:
+      - name: Deploy app from server checkout
+        run: |
+          cd /srv/zip_url
+
+          git fetch origin
+          git reset --hard origin/main
+
+          docker compose build
+          docker compose up -d postgres rabbitmq redis
+          docker compose run --rm migrate
+          docker compose up -d api worker
+
+      - name: Show running containers
+        run: |
+          cd /srv/zip_url
+          docker compose ps
