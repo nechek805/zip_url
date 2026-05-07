@@ -5,7 +5,7 @@ from src.user.schemas import UserCreate, UserRead
 from src.user.repository import UserRepository
 from src.user.exceptions import EmailAlreadyRegistered, EmailNotFound, PasswordNotValid
 from src.user.models import User
-
+from src.logger import logger
 
 class UserService:
     def __init__(self, db: AsyncSession):
@@ -40,7 +40,8 @@ class UserService:
         if not user_db:
             raise EmailNotFound("Email not found")
         hashed_password = self._hash_password(password)
-        if user_db.hashed_password != hashed_password:
+        logger.info(f"{hashed_password=}, {user_db.hashed_password=}")
+        if not self.pwd_context.verify(password, user_db.hashed_password):
             raise PasswordNotValid("Password not valid")
         return user_db
     

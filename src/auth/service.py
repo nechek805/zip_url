@@ -21,7 +21,7 @@ class AuthService:
 
     async def register_user(self, user: UserCreate) -> SessionRead:
         created_user = await self.user_service.create_user(user)
-        session = await self.session_service.create_session_by_user_id(created_user)
+        session = await self.session_service.create_session_by_user_id(created_user.id)
         return session
     
     async def login_user(self, user: UserLogin) -> SessionRead:     

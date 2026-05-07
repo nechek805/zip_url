@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
+import hashlib
 
 from src.session.repository import SessionRepository
 from src.session.models import Session
@@ -11,11 +12,9 @@ from src.session.schemas import SessionRead
 class SessionService:
     def __init__(self, db: AsyncSession):
         self.session_repository = SessionRepository(db)
-        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
     def _hash_session_token(self, session_token: str) -> str:
-        return self.pwd_context.hash(session_token)
+        return hashlib.sha256(session_token.encode("utf-8")).hexdigest()
 
     async def  create_session_by_user_id(
             self,

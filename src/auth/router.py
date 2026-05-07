@@ -51,6 +51,7 @@ async def logout(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired session"
         )
+    return {"message": "Logout seccessfuly"}
         
 
     
