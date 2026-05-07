@@ -1,6 +1,7 @@
 services:
   migrate:
     build: .
+    profiles: ["tools"]
     volumes:
       - .:/app
       - app_venv:/app/.venv
@@ -53,7 +54,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: uv run uvicorn src.main:app --host 0.0.0.0 --port 8000
+    command: uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
   worker:
     build: .
