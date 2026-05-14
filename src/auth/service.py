@@ -22,6 +22,7 @@ class AuthService:
     async def register_user(self, user: UserCreate) -> SessionRead:
         created_user = await self.user_service.create_user(user)
         session = await self.session_service.create_session_by_user_id(created_user.id)
+        await self.user_service.send_confirm_email(created_user)
         return session
     
     async def login_user(self, user: UserLogin) -> SessionRead:     
@@ -31,6 +32,10 @@ class AuthService:
     
     async def logout_user(self, session_token: str):
         success = await self.session_service.deactivate_session(session_token)
+        return success
+    
+    async def confirm_email(self, token: str) -> bool:
+        success = await self.user_service.confirm_email(token)
         return success
 
 

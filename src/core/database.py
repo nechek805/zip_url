@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 
-from src.core.config import DATABASE_URL
+from src.core.config import config
 
 class Base(DeclarativeBase):
     pass
@@ -14,7 +14,7 @@ class Base(DeclarativeBase):
 
 
 engine = create_async_engine(
-    DATABASE_URL,
+    config.get_database_url(),
     echo=False,
     pool_pre_ping=True
     )

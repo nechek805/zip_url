@@ -52,6 +52,21 @@ async def logout(
             detail="Invalid or expired session"
         )
     return {"message": "Logout seccessfuly"}
+
+
+@router.get("/confirm-email")
+async def confirm_email(
+    token: str,
+    db: AsyncSession = Depends(get_db)
+):
+    service = AuthService(db)
+    success = await service.confirm_email(token)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired session"
+        )
+    return {"message": "Confirmed seccessfuly"}
         
 
     

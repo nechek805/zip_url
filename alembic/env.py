@@ -6,8 +6,9 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from src.core.config import DATABASE_URL
+from src.core.config import config as app_config
 from src.core.database import Base
+import alembic_postgresql_enum
 
 from src.user import models #noqa
 from src.session import models #noqa
@@ -15,7 +16,7 @@ from src.session import models #noqa
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
+config.set_main_option("sqlalchemy.url", app_config.get_database_url())
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
