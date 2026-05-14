@@ -2,7 +2,7 @@ from celery import Celery
 import os
 
 celery_app = Celery(
-    "very_loaded_api",
+    "zip_url",
     broker=os.environ["CELERY_BROKER_URL"],
     backend=os.environ["CELERY_RESULT_BACKEND"],
 )
@@ -12,5 +12,8 @@ celery_app.conf.update(
     accept_content=["json"],
     result_serializer="json",
     timezone="UTC",
-    enable_utc=True
+    enable_utc=True,
+    include=[
+        "src.celery_app.celery_send_email",
+    ],
 )
