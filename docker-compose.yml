@@ -89,7 +89,7 @@ services:
     command: uv run celery -A src.celery_app.celery_main:celery_app worker --loglevel=info --without-mingle --without-gossip
 
   rabbitmq:
-    image: rabbitmq:4-management
+    image: rabbitmq:3.13-management
     restart: unless-stopped
     ports:
       - "5672:5672"
