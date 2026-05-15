@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from src.user.schemas import UserCreate, UserLogin, UserRead
-from src.session.schemas import SessionRead
+from src.session.schemas import SessionReadFirstTime
 from src.user.service import UserService
 from src.session.service import SessionService
 
@@ -19,13 +19,13 @@ class AuthService:
         return self.pwd_context.hash(password)
 
 
-    async def register_user(self, user: UserCreate) -> SessionRead:
+    async def register_user(self, user: UserCreate) -> SessionReadFirstTime:
         created_user = await self.user_service.create_user(user)
         session = await self.session_service.create_session_by_user_id(created_user.id)
         await self.user_service.send_confirm_email(created_user)
         return session
     
-    async def login_user(self, user: UserLogin) -> SessionRead:     
+    async def login_user(self, user: UserLogin) -> SessionReadFirstTime:     
         user_db = await self.user_service.check_password(user.email, user.password)
         session = await self.session_service.create_session_by_user_id(user_db.id)
         return session

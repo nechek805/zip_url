@@ -1,6 +1,9 @@
 from password_validator import PasswordValidator
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
+from src.session.schemas import SessionRead
+from src.zip_url.schemas import ZipURLFullInfo
+
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -26,3 +29,12 @@ class UserRead(BaseModel):
 
     id: int
     email: EmailStr
+
+
+class UserReadFullInfo(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: EmailStr
+    sessions: list[SessionRead]
+    zip_urls: list[ZipURLFullInfo]
