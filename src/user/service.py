@@ -80,7 +80,8 @@ class UserService:
 
 
     def _generate_confirm_email_text(self, confirmation_token: str) -> str:
-        confirmation_url = config.get_email_confirmation_url().format(token=confirmation_token)
+        base_url = config.get_base_url()
+        confirm_url = f"{base_url}/auth/confirm-url?token={self.confirm_email}"
         text = f"""
 ZIP URL
 
@@ -98,5 +99,12 @@ This link expires in 24 hours.
         hashed_token = self._hash_token(token)
         result = await self.user_repository.activate_email_by_hashed_token(hashed_token)
         return result
+    
+
+    async def get_user_by_session_token(self, session_token: str) -> UserRead:
+        hashed_session_token = self._hash_token(session_token)
+        user = await self.user_repository.get_user_by_hashed_session_token(hashed_session_token)
+        user_read = UserRead.model_validate(user)
+        return user_read
 
     

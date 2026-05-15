@@ -10,6 +10,7 @@ from src.core.database import Base
 
 if TYPE_CHECKING:
     from src.session.models import Session
+    from src.zip_url.models import ZippedURL
 
 
 class EmailStatus(str, Enum):
@@ -45,6 +46,10 @@ class User(Base):
         cascade="all, delete-orphan",
     )
 
+    zipped_urls: Mapped[list["ZippedURL"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",    
+    )
 
 
 class EmailConfirmationToken(Base):

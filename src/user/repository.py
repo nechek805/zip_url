@@ -1,7 +1,11 @@
+from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.user.models import User, EmailConfirmationToken, EmailStatus
+from src.session.models import Session
+from src.user.exceptions import InvalidSessionError, UserNotFound
 
 class UserRepository:
     def __init__(self, db: AsyncSession):
@@ -45,3 +49,22 @@ class UserRepository:
         token_db.used = True
         await self.db.commit()
         return True
+    
+    async def get_user_by_hashed_session_token(self, hashed_session_token: str) -> User:
+        stmt = select(Session).where(
+            (Session.hashed_session_token == hashed_session_token) &
+            (Session.is_active == True) &
+            (Session.expires_at > datetime.now())
+        )
+
+        result = await self.db.execute(stmt)
+        session = result.scalar_one_or_none()
+        if not session:
+            raise InvalidSessionError("Invalid session")
+        
+        stmt = select(User).where(User.id==session.user_id)
+        result = await self.db.execute(stmt)
+        user = result.scalar_one_or_none()
+        if not user:
+            raise UserNotFound("User not found")
+        return user

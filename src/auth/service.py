@@ -2,7 +2,7 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-from src.user.schemas import UserCreate, UserLogin
+from src.user.schemas import UserCreate, UserLogin, UserRead
 from src.session.schemas import SessionRead
 from src.user.service import UserService
 from src.session.service import SessionService
@@ -37,6 +37,11 @@ class AuthService:
     async def confirm_email(self, token: str) -> bool:
         success = await self.user_service.confirm_email(token)
         return success
+    
+
+    async def get_user_by_session_token(self, session_token: str) -> UserRead:
+        user = await self.user_service.get_user_by_session_token(session_token)
+        return user
 
 
 

@@ -16,8 +16,8 @@ class __Config:
     def get_email_app_password(self):
         return os.getenv("EMAIL_APP_PASSWORD")
     
-    def get_email_confirmation_url(self):
-        return os.getenv("EMAIL_CONFIRMATION_URL")
+    def get_base_url(self):
+        return os.getenv("BASE_URL")
     
 
 

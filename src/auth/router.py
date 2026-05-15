@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.user.exceptions import EmailAlreadyRegistered, EmailNotFound, PasswordNotValid
@@ -14,20 +14,21 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def register(
     user: UserCreate,
     db: AsyncSession = Depends(get_db)
-) -> SessionRead:
+) -> dict:
     service = AuthService(db)
     try:
-        session = await service.register_user(user)
+        await service.register_user(user)
     except EmailAlreadyRegistered:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered.")
-    return session
+    return {"message": "Registered successfully. Now you need confirm your email and login."}
 
 
 @router.post("/login")
 async def login(
     user: UserLogin,
+    response: Response,
     db: AsyncSession = Depends(get_db)
-) -> SessionRead:
+) -> dict:
     service = AuthService(db)
     try:
         session = await service.login_user(user)
@@ -35,12 +36,21 @@ async def login(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Email not found")
     except PasswordNotValid:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Password not valid")
-    return session
+    response.set_cookie(
+        key="session_token",
+        value=session.session_token,
+        httponly=True,
+        secure=False, # True in production
+        samesite="lax",
+        max_age=60 * 60 * 24 * 30 # 1 month
+    )
+    return {"message": "Logged in"}
 
 
 
 @router.post("/logout")
 async def logout(
+    response: Response,
     session_token: str,
     db: AsyncSession = Depends(get_db)
 ):
@@ -51,7 +61,9 @@ async def logout(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired session"
         )
-    return {"message": "Logout seccessfuly"}
+    
+    response.delete_cookie("session_token")
+    return {"message": "Logout seccessfully"}
 
 
 @router.get("/confirm-email")
@@ -66,7 +78,7 @@ async def confirm_email(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired session"
         )
-    return {"message": "Confirmed seccessfuly"}
+    return {"message": "Confirmed seccessfully"}
         
 
     
