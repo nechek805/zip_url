@@ -1,4 +1,6 @@
 
+from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,5 +31,14 @@ class SessionRepository:
         await self.db.refresh(session)
         return session
 
+    async def get_active_and_actual_sessions_by_user_id(self, user_id: int) -> list[Session]:
+        stmt = select(Session).where(
+            (Session.user_id == user_id) &
+            (Session.is_active == True) &
+            (Session.expires_at > datetime.now())
+        )
+        result = await self.db.execute(stmt)
+        sessions = result.scalars()
+        return sessions
 
     

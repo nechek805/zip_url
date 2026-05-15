@@ -5,8 +5,12 @@ import secrets
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.user.schemas import UserCreate, UserRead
+from src.session.schemas import SessionRead
+from src.user.schemas import UserCreate, UserRead, UserReadFullInfo
 from src.user.repository import UserRepository
+from src.session.repository import SessionRepository
+from src.zip_url.repository import ZipURLRepository
+from src.zip_url.schemas import ZipURLFullInfo
 from src.user.exceptions import EmailAlreadyRegistered, EmailNotFound, PasswordNotValid
 from src.user.models import User, EmailConfirmationToken
 from src.core.config import config
@@ -17,6 +21,8 @@ from src.celery_app.celery_send_email import send_confirm_email
 class UserService:
     def __init__(self, db: AsyncSession):
         self.user_repository = UserRepository(db)
+        self.session_repository = SessionRepository(db)
+        self.zip_url_repository = ZipURLRepository(db)
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -80,7 +86,8 @@ class UserService:
 
 
     def _generate_confirm_email_text(self, confirmation_token: str) -> str:
-        confirmation_url = config.get_email_confirmation_url().format(token=confirmation_token)
+        base_url = config.get_base_url()
+        confirmation_url = f"{base_url}/auth/confirm-url?token={self.confirm_email}"
         text = f"""
 ZIP URL
 
@@ -98,5 +105,44 @@ This link expires in 24 hours.
         hashed_token = self._hash_token(token)
         result = await self.user_repository.activate_email_by_hashed_token(hashed_token)
         return result
+    
+
+    async def get_user_by_session_token(self, session_token: str) -> UserRead:
+        hashed_session_token = self._hash_token(session_token)
+        user = await self.user_repository.get_user_by_hashed_session_token(hashed_session_token)
+        user_read = UserRead.model_validate(user)
+        return user_read
+    
+    async def get_full_user_info(self, user: UserRead) -> UserReadFullInfo:
+        sessions = await self.session_repository.get_active_and_actual_sessions_by_user_id(user.id)
+        zip_urls = await self.zip_url_repository.get_zip_urls_by_user_id(user.id)
+
+        sessions = [
+            SessionRead(
+                id=session.id,
+                created_at=session.created_at,
+                expires_at=session.expires_at,
+            )
+            for session in sessions
+        ]
+
+        zip_urls = [
+            ZipURLFullInfo(
+                id=zip_url.id,
+                original_url=zip_url.original_url,
+                zipped_url=f"{config.get_base_url()}/{zip_url.zip_token}",
+                created_at=zip_url.created_at,
+            )
+            for zip_url in zip_urls
+        ]
+
+        user_full_info = UserReadFullInfo(
+            id=user.id,
+            email=user.email,
+            sessions=sessions,
+            zip_urls=zip_urls,
+        )
+
+        return user_full_info
 
     

@@ -1,0 +1,1 @@
+class TokenAlreadyExist(Exception): pass

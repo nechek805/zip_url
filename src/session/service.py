@@ -7,7 +7,7 @@ import hashlib
 
 from src.session.repository import SessionRepository
 from src.session.models import Session
-from src.session.schemas import SessionRead
+from src.session.schemas import SessionReadFirstTime
 
 class SessionService:
     def __init__(self, db: AsyncSession):
@@ -20,7 +20,7 @@ class SessionService:
             self,
             user_id: int,
             inteval: timedelta = timedelta(days=30),
-    ) -> SessionRead:
+    ) -> SessionReadFirstTime:
         session_token = secrets.token_hex(16)
         hashed_session_token = self._hash_session_token(session_token)
 
@@ -34,7 +34,7 @@ class SessionService:
             expires_at=expires_at,
         )
         session = await self.session_repository.create_session(session)
-        session_read = SessionRead(
+        session_read = SessionReadFirstTime(
             session_token=session_token,
             created_at=created_at,
             expires_at=expires_at,
