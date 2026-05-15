@@ -32,7 +32,7 @@ class UserRepository:
     async def activate_email_by_hashed_token(self, hashed_token: str) -> bool:
         stmt = select(EmailConfirmationToken).where(
             (EmailConfirmationToken.hashed_token==hashed_token) &
-            (EmailConfirmationToken.used==False)
+            (EmailConfirmationToken.used.is_(False))
         )
         result = await self.db.execute(stmt)
         token_db = result.scalar_one_or_none()
@@ -53,7 +53,7 @@ class UserRepository:
     async def get_user_by_hashed_session_token(self, hashed_session_token: str) -> User:
         stmt = select(Session).where(
             (Session.hashed_session_token == hashed_session_token) &
-            (Session.is_active == True) &
+            (Session.is_active.is_(True)) &
             (Session.expires_at > datetime.now())
         )
 

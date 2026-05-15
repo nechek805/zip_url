@@ -8,8 +8,8 @@ from alembic import context
 
 from src.core.config import config as app_config
 from src.core.database import Base
-import alembic_postgresql_enum
 
+import alembic_postgresql_enum #noqa
 from src.user import models #noqa
 from src.session import models #noqa
 from src.zip_url import models #noqa

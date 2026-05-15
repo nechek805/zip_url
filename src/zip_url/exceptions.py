@@ -1,1 +1,2 @@
-class TokenAlreadyExist(Exception): pass
+class TokenAlreadyExist(Exception): 
+    pass

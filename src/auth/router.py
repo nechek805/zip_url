@@ -5,7 +5,6 @@ from src.user.exceptions import EmailAlreadyRegistered, EmailNotFound, PasswordN
 from src.core.database import get_db
 from src.auth.service import AuthService
 from src.user.schemas import UserLogin, UserCreate
-from src.session.schemas import SessionReadFirstTime
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
