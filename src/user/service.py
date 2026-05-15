@@ -81,7 +81,7 @@ class UserService:
 
     def _generate_confirm_email_text(self, confirmation_token: str) -> str:
         base_url = config.get_base_url()
-        confirm_url = f"{base_url}/auth/confirm-url?token={self.confirm_email}"
+        confirmation_url = f"{base_url}/auth/confirm-url?token={self.confirm_email}"
         text = f"""
 ZIP URL
 
