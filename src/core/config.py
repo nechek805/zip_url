@@ -19,6 +19,9 @@ class __Config:
     def get_base_url(self):
         return os.getenv("BASE_URL")
     
+    def get_origins(self):
+        return os.getenv("ORIGINS")
+    
 
 
 config = __Config()
